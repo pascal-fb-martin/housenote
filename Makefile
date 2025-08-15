@@ -1,0 +1,97 @@
+# HouseNote - a web server to share and browse markdown notes
+#
+# Copyright 2025, Pascal Martin
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor,
+# Boston, MA  02110-1301, USA.
+#
+# WARNING
+#
+# This Makefile depends on echttp and houseportal (dev) being installed.
+
+prefix=/usr/local
+SHARE=$(prefix)/share/house
+
+INSTALL=/usr/bin/install
+
+HAPP=housenote
+HMAN=/var/lib/house/note/content/manuals/infrastructure
+
+# Application build. --------------------------------------------
+
+OBJS= housenote_storage.o housenote.o
+LIBOJS=
+
+all: housenote
+
+clean:
+	rm -f *.o *.a housenote
+
+rebuild: clean all
+
+%.o: %.c
+	gcc -c -Wall -g -O -o $@ $<
+
+housenote: $(OBJS)
+	gcc -g -O -o housenote $(OBJS) -lhouseportal -lechttp -lssl -lcrypto -lmarkdown -lmagic -lrt
+
+# Distribution agnostic file installation -----------------------
+
+install-ui: install-preamble
+	$(INSTALL) -m 0755 -d $(DESTDIR)$(SHARE)/public/note
+	$(INSTALL) -m 0644 public/* $(DESTDIR)$(SHARE)/public/note
+	$(INSTALL) -m 0755 -d $(DESTDIR)$(HMAN)
+	$(INSTALL) -m 0644 README.md $(DESTDIR)$(HMAN)/$(HAPP).md
+
+install-runtime: install-preamble
+	$(INSTALL) -m 0755 -d $(DESTDIR)/var/lib/house/note/content
+	$(INSTALL) -m 0755 -d $(DESTDIR)/var/lib/house/note/cache
+	$(INSTALL) -m 0755 -s housenote $(DESTDIR)$(prefix)/bin
+	touch $(DESTDIR)/etc/default/housenote
+	if [ "x$(DESTDIR)" = "x" ] ; then grep -q '^house:' /etc/passwd && chown -R house:house /var/lib/house/note ; fi
+
+install-app: install-ui install-runtime
+
+uninstall-app:
+	rm -f $(DESTDIR)$(prefix)/bin/housenote
+	rm -rf $(DESTDIR)$(SHARE)/public/metrics
+
+purge-app:
+
+purge-config:
+	rm -f $(DESTDIR)/etc/house/note.config
+	rm -rf $(DESTDIR)/etc/default/housenote
+	rm -rf $(DESTDIR)/var/lib/house/note
+
+# Build a private Debian package. -------------------------------
+
+install-package: install-ui install-runtime install-systemd
+
+debian-package:
+	rm -rf build
+	install -m 0755 -d build/$(HAPP)/DEBIAN
+	cat debian/control | sed "s/{{arch}}/`dpkg --print-architecture`/" > build/$(HAPP)/DEBIAN/control
+	install -m 0644 debian/copyright build/$(HAPP)/DEBIAN
+	install -m 0644 debian/changelog build/$(HAPP)/DEBIAN
+	install -m 0755 debian/postinst build/$(HAPP)/DEBIAN
+	install -m 0755 debian/prerm build/$(HAPP)/DEBIAN
+	install -m 0755 debian/postrm build/$(HAPP)/DEBIAN
+	make DESTDIR=build/$(HAPP) install-package
+	cd build ; fakeroot dpkg-deb -b $(HAPP) .
+
+# System installation. ------------------------------------------
+
+include $(SHARE)/install.mak
+

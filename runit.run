@@ -1,0 +1,10 @@
+#!/bin/sh
+OPTS=
+HTTPOPTS=
+HOUSEOPTS=
+OTHEROPTS=
+if [ -e /etc/default/housegeneric ] ; then . /etc/default/housegeneric ; fi
+if [ -e /etc/default/housenote ] ; then . /etc/default/housenote ; fi
+sv start houseportal || exit 1
+exec /usr/local/bin/housenote $HTTPOPTS $HOUSEOPTS $OTHEROPTS $OPTS
+

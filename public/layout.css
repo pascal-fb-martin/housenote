@@ -1,0 +1,51 @@
+
+.housenotepage {
+   display: grid;
+   grid-template-rows: auto 1fr auto;
+   min-height: 100vh;
+   margin: 0;
+}
+
+.housenotetop {
+   background-color: #2F2F2F;
+   font-family:'Metrophobic', sans-serif;
+   font-size: 30px;
+   text-decoration: none;
+   color: #A0A0A0;
+   padding: 0px;
+}
+
+.housenotelist {
+   background-color: #006400;
+   font-family:'Metrophobic', sans-serif;
+   font-size: 20px;
+   text-decoration: none;
+   color: #F0F0F0;
+   padding: 0px;
+   width: 19%;
+   height: 100%;
+   float: left;
+}
+
+.housenotecontent {
+   width: 80%;
+   float: right;
+}
+
+.housenotebuttontop {
+   font-family:'Metrophobic', sans-serif;
+   font-size: 30px;
+   background-color: #2F2F2F;
+   border: 0px solid #2F2F2F;
+   color: #F0F0F0;
+}
+.housenotebutton {
+   background-color: darkgreen;
+   border: 0px solid darkgreen
+}
+
+tbody {
+   border: 0px;
+   padding: 0px;
+}
+

@@ -1,0 +1,123 @@
+<html>
+<head>
+<link rel="stylesheet" href="/house.css">
+<link rel="stylesheet" href="/note/layout.css">
+<script language="javascript" type="text/javascript">
+
+var NoteCurrentPath = '/';
+var NoteCurrentDocument = null;
+
+function noteButton (css) {
+   var button = document.createElement("button");
+   if (css) button.className = css;
+   else button.className = 'housenotebutton';
+   return button;
+}
+
+function noteWipeout (id) {
+   var element = document.getElementById (id);
+   if (element) {
+      for (var i = element.rows.length - 1; i >= 0; --i) {
+         element.deleteRow(i);
+      }
+   }
+   return element;
+}
+
+function noteContentShow (uri) {
+   var iframe = document.getElementById ('notecontent');
+   if (uri) iframe.src = uri;
+   else iframe.src = null;
+   iframe.width = '100%';
+   iframe.height = '100%';
+   iframe.className = 'housenotecontent';
+}
+
+function notePathShow () {
+   var steps = NoteCurrentPath.substring (1).split ('/');
+   var table = noteWipeout ('notepath');
+   var row = table.insertRow ();
+   var column = document.createElement('td');
+   column.className = "housenotetop"; // Kludge to override browser's defaults
+   var button = noteButton ('housenotebuttontop');
+   button.innerHTML = '/';
+   button.houseNotePath = '/';
+   button.addEventListener ("click", noteBrowseClick);
+   column.appendChild (button);
+   for (i = 0; i < steps.length; ++i) {
+      if (steps[i].length == 0) continue;
+      button = noteButton ('housenotebuttontop');
+      button.innerHTML = steps[i];
+      button.houseNotePath = '/'+steps.slice(0,i+1).join('/');
+      button.addEventListener ("click", noteBrowseClick);
+      column.appendChild (button);
+      if (i < steps.length - 1 )
+         column.appendChild (document.createTextNode (' / '));
+   }
+   row.appendChild (column);
+}
+
+function noteBrowseClick () {
+   noteContentShow ();
+   noteBrowseGet (this.houseNotePath);
+}
+
+function noteContentClick () {
+   noteContentShow (this.houseNotePath);
+}
+
+function noteNavigatorShow (response) {
+   notePathShow ();
+   var table = noteWipeout ('notelist');
+
+   for (i = 0; i < response.note.browse.length; ++i) {
+      var item = response.note.browse[i];
+      var line = table.insertRow ();
+      var column = document.createElement("td");
+      var button = noteButton ();
+      if (item[0])
+         button.addEventListener ("click", noteBrowseClick);
+      else
+         button.addEventListener ("click", noteContentClick);
+      button.houseNotePath = item[1];
+      button.innerHTML = item[2];
+      column.appendChild (button);
+      line.appendChild (column);
+   }
+}
+
+function noteBrowseGet (path) {
+   var command = new XMLHttpRequest();
+   command.open("GET", "/note/browse"+path);
+   command.onreadystatechange = function () {
+      if (command.readyState === 4 && command.status === 200) {
+         NoteCurrentPath = path;
+         noteNavigatorShow(JSON.parse(command.responseText));
+      }
+   }
+   command.send(null);
+}
+
+window.onload = function() {
+    noteBrowseGet ('/');
+};
+</script>
+<title>Notes</title>
+</head>
+<body class="housenotepage">
+   <header class="housenotetop">
+      <table id="notepath" width="100%"></table>
+   </header>
+   <div>
+      <div class="housenotelist">
+         <table cellpadding="0" border="0" id="notelist" width="100%">
+         </table>
+      </div>
+      <div class="housenotecontent">
+         <iframe id="notecontent" style="border:none;" width="100%" height="100%"></iframe>
+      </div>
+   </div>
+   <footer></footer>
+</body>
+</html>
+
