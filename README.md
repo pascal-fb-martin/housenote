@@ -1,4 +1,5 @@
 # HouseNote
+
 The House service to browse shared markdown notes
 
 ## Overview

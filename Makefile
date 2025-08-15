@@ -27,8 +27,7 @@ SHARE=$(prefix)/share/house
 INSTALL=/usr/bin/install
 
 HAPP=housenote
-HMAN=/var/lib/house/note/content/manuals/infrastructure
-HMANCACHE=/var/lib/house/note/cache
+HCAT=infrastructure
 
 # Application build. --------------------------------------------
 
@@ -53,9 +52,6 @@ housenote: $(OBJS)
 install-ui: install-preamble
 	$(INSTALL) -m 0755 -d $(DESTDIR)$(SHARE)/public/note
 	$(INSTALL) -m 0644 public/* $(DESTDIR)$(SHARE)/public/note
-	$(INSTALL) -m 0755 -d $(DESTDIR)$(HMAN)
-	$(INSTALL) -m 0644 README.md $(DESTDIR)$(HMAN)/$(HAPP).md
-	rm -rf $(DESTDIR)$(HMANCACHE)/*
 
 install-runtime: install-preamble
 	$(INSTALL) -m 0755 -d $(DESTDIR)/var/lib/house/note/content
@@ -68,9 +64,7 @@ install-app: install-ui install-runtime
 
 uninstall-app:
 	rm -f $(DESTDIR)$(prefix)/bin/housenote
-	rm -rf $(DESTDIR)$(SHARE)/public/metrics
-	rm -f $(DESTDIR)$(HMAN)/$(HAPP).md
-	rm -rf $(DESTDIR)$(HMANCACHE)/*
+	rm -rf $(DESTDIR)$(SHARE)/public/note
 
 purge-app:
 
