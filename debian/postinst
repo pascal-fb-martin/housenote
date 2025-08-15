@@ -4,6 +4,7 @@ HAPP=housenote
 
 case $1 in
     configure|abort-upgrade|abort-deconfigure|abort-remove)
+        rm -rf /var/lib/house/note/cache/*
         grep -q '^house:' /etc/passwd || useradd -r house -s /usr/sbin/nologin -d /var/lib/house
         chown -R house:house /var/lib/house/note
         systemctl daemon-reload

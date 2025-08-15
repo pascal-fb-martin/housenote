@@ -28,6 +28,7 @@ INSTALL=/usr/bin/install
 
 HAPP=housenote
 HMAN=/var/lib/house/note/content/manuals/infrastructure
+HMANCACHE=/var/lib/house/note/cache/manuals/infrastructure
 
 # Application build. --------------------------------------------
 
@@ -54,6 +55,7 @@ install-ui: install-preamble
 	$(INSTALL) -m 0644 public/* $(DESTDIR)$(SHARE)/public/note
 	$(INSTALL) -m 0755 -d $(DESTDIR)$(HMAN)
 	$(INSTALL) -m 0644 README.md $(DESTDIR)$(HMAN)/$(HAPP).md
+	rm -f $(DESTDIR)$(HMANCACHE)/$(HAPP).html
 
 install-runtime: install-preamble
 	$(INSTALL) -m 0755 -d $(DESTDIR)/var/lib/house/note/content
