@@ -7,7 +7,7 @@ Homepage: https://github.com/pascal-fb-martin/housenote
 Standard-Version: 4.7.0
 Package: housenote
 Architecture: {{arch}}
-Depends: 
+Depends: houseportal,libmarkdown2
 Description: A House service to share and browse notes
  HouseNote is part of the House suite of web services.
  .
