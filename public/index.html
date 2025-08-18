@@ -72,13 +72,24 @@ function noteNavigatorShow (response) {
 
    for (i = 0; i < response.note.browse.length; ++i) {
       var item = response.note.browse[i];
+      if (!item[0]) continue; // See 2nd loop.
       var line = table.insertRow ();
       var column = document.createElement("td");
       var button = noteButton ();
-      if (item[0])
-         button.addEventListener ("click", noteBrowseClick);
-      else
-         button.addEventListener ("click", noteContentClick);
+      button.addEventListener ("click", noteBrowseClick);
+      button.houseNotePath = item[1];
+      button.innerHTML = item[2] + ' >';
+      column.appendChild (button);
+      line.appendChild (column);
+   }
+
+   for (i = 0; i < response.note.browse.length; ++i) {
+      var item = response.note.browse[i];
+      if (item[0]) continue; // See 1st loop.
+      var line = table.insertRow ();
+      var column = document.createElement("td");
+      var button = noteButton ();
+      button.addEventListener ("click", noteContentClick);
       button.houseNotePath = item[1];
       button.innerHTML = item[2];
       column.appendChild (button);

@@ -129,6 +129,38 @@ failure:
     return -1;
 }
 
+static void housenote_storage_title (char *title, int size, const char *path) {
+
+    FILE *file = fopen (path, "r");
+    if (!file) goto failure;
+
+    // Detect and extract the markdown title. If not found in the first
+    // file lines, fallback to the file name.
+    int i;
+    for (i = 0; (i < 5) && (!feof(file)); ++i) {
+        fgets (title, size, file);
+        if (title[0] == '\n') continue;
+        if ((title[0] == '#') && (title[1] == ' ')) {
+            fclose (file);
+            memmove (title, title+2, size-2);
+            title[size-2] = 0; // Be safe.
+            char *e = strchr (title, '\n');
+            if (e) *e = 0;
+            return;
+        }
+    }
+    fclose (file);
+
+failure:
+
+    // Use the file basename as a fallback.
+    const char *b = strrchr (path, '/');
+    if (b) path = b + 1;
+    snprintf (title, size, "%s", path);
+    char *s = strrchr (title, '.');
+    if (s) *s = 0;
+}
+
 void housenote_storage_initialize (int argc, const char **argv,
                                    const char *rooturi) {
 
@@ -155,7 +187,7 @@ int housenote_storage_browse (const char *path, char *buffer, int size) {
    if (!dir) return 0;
 
    int cursor = snprintf (buffer, size, ",\"browse\":");
-   if (cursor >= size) return 0;
+   if (cursor >= size) goto overflow;
 
    const char *sep = "[";
    for (;;) {
@@ -170,8 +202,7 @@ int housenote_storage_browse (const char *path, char *buffer, int size) {
        if (stat (fullchildpath, &fileinfo)) continue; // Ignore.
 
 
-       char display[512];
-       snprintf (display, sizeof(display), "%s", p->d_name);
+       char display[1300];
        char basename[512];
        snprintf (basename, sizeof(basename)-5, "%s", p->d_name);
 
@@ -179,11 +210,13 @@ int housenote_storage_browse (const char *path, char *buffer, int size) {
        int filetype = fileinfo.st_mode & S_IFMT;
        if (filetype == S_IFDIR) {
            baseuri = "";
+           snprintf (display, sizeof(display), "%s", p->d_name);
        } else if (filetype == S_IFREG) {
            ext = strrchr (basename, '.');
            if (!ext || strcmp (ext, ".md")) continue; // Only markdown.
            strcpy (ext, ".html");
            baseuri = HouseNoteFileUri;
+           housenote_storage_title (display, sizeof(display), fullchildpath);
        } else continue; // Ignore this entry.
 
        if ((path[1] == 0) && (path[0] == '/')) path += 1; // Corner case "/".
@@ -192,11 +225,14 @@ int housenote_storage_browse (const char *path, char *buffer, int size) {
                            "%s[%s,\"%s%s/%s\",\"%s\"]", sep,
                            (filetype == S_IFDIR)?"true":"false",
                            baseuri, path, basename, display);
-       if (cursor >= size) return 0;
+       if (cursor >= size) goto overflow;
        sep = ",";
    }
    cursor += snprintf (buffer+cursor, size-cursor, "]");
-   if (cursor >= size) return 0;
+
+overflow:
+   if (cursor >= size) cursor = 0;
+   closedir (dir);
    return cursor;
 }
 
