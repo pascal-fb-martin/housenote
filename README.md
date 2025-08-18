@@ -1,10 +1,12 @@
 # HouseNote
 
-The House service to browse shared markdown notes
+The House service to share markdown notes
 
 ## Overview
 
-This service stores and shares markdown notes. One can browse the notes, rendered in HTML. Notes are submitted through HTTP POST methods.
+This service stores and shares markdown notes. One can browse the notes, rendered in HTML.
+
+Notes can be submitted through HTTP POST methods, but the preferred method is by installing files (and clearing the cache).
 
 ## Installation
 
@@ -22,6 +24,18 @@ This service depends on the House series environment:
 
 This service keeps two hierarchies of documents: the original markdown document in a private directory. An HTML cache in a public directory. Both are in `/var/lib/house/note` since this is user or application modified content.
 
+## Notes Installation.
+
+New or updated notes can be copied to /var/lib/house/note/content. Installing a whole directory tree is allowed.
+
+After each installation, the HouseNote cache should be cleared:
+
+```
+sudo rm -rf /var/lib/house/note/cache/*
+```
+
+The title of each note is extrated to populate the left menu: it is recommended to keep titles short, 30 characters or less.
+
 ## Web API
 
 ```
@@ -34,7 +48,7 @@ This endpoint returns a list of directory or file that are found at the provided
 PUT /note/publish/..
 ```
 
-This endpoint is used to upload a note. This request will overwrite any pre-existing note with the same name.
+This endpoint is used to upload one note. This request will overwrite any pre-existing note with the same name. Directories present in the path that do not exist on disk will be created automatically. Any matching file in the cache will be deleted automatically.
 
 ## Debian Packaging
 
