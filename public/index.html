@@ -78,7 +78,7 @@ function noteNavigatorShow (response) {
       var button = noteButton ();
       button.addEventListener ("click", noteBrowseClick);
       button.houseNotePath = item[1];
-      button.innerHTML = item[2] + ' >';
+      button.innerHTML = item[2] + '  &#x25b8';
       column.appendChild (button);
       line.appendChild (column);
    }
