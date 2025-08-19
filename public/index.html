@@ -66,12 +66,21 @@ function noteContentClick () {
    noteContentShow (this.houseNotePath);
 }
 
+function compareDisplayName (a, b) {
+   var namea = a[2].toUpperCase();
+   var nameb = b[2].toUpperCase();
+   if (namea < nameb) return -1;
+   if (namea > nameb) return 1;
+   return 0;
+}
+
 function noteNavigatorShow (response) {
    notePathShow ();
    var table = noteWipeout ('notelist');
+   var itemlist = response.note.browse.sort (compareDisplayName);
 
-   for (i = 0; i < response.note.browse.length; ++i) {
-      var item = response.note.browse[i];
+   for (i = 0; i < itemlist.length; ++i) {
+      var item = itemlist[i];
       if (!item[0]) continue; // See 2nd loop.
       var line = table.insertRow ();
       var column = document.createElement("td");
@@ -83,8 +92,8 @@ function noteNavigatorShow (response) {
       line.appendChild (column);
    }
 
-   for (i = 0; i < response.note.browse.length; ++i) {
-      var item = response.note.browse[i];
+   for (i = 0; i < itemlist.length; ++i) {
+      var item = itemlist[i];
       if (item[0]) continue; // See 1st loop.
       var line = table.insertRow ();
       var column = document.createElement("td");
