@@ -90,12 +90,11 @@ static int housenote_storage_render (const char *filename) {
     char fullpath[1024];
     const char *base = filename + HouseNoteWebRootLength;
 
-    snprintf (fullpath, sizeof(fullpath), "%s%s", HouseNoteMarkdownRoot, base);
+    // Build the source name. (The code reserves 3 bytes for the .md suffix.)
+    snprintf (fullpath, sizeof(fullpath)-3, "%s%s", HouseNoteMarkdownRoot, base);
     char *sep = strrchr (fullpath, '.');
     if (!sep) return -1;
-    sep[1] = 'm';
-    sep[2] = 'd';
-    sep[3] = 0;
+    sep[1] = 'm'; sep[2] = 'd'; sep[3] = 0;
 
     in = fopen (fullpath, "r");
     if (!in) return -1;
@@ -258,7 +257,8 @@ const char *housenote_storage_publish (const char *path,
     int fd = open (fullpath, O_WRONLY|O_TRUNC|O_CREAT, 0644);
     if (fd < 0) return "cannot create";
 
-    if (write (fd, data, size) != size) {
+    int written = write (fd, data, size);
+    if (written != size) {
        close (fd);
        return "cannot write the data";
     }
@@ -266,8 +266,13 @@ const char *housenote_storage_publish (const char *path,
 
     // Delete the HTML file, if any. This will trigger a new rendering when
     // the HTML file is first requested.
+    // (The code reserves 5 bytes for the ".html" suffix.)
     //
-    snprintf (fullpath, sizeof(fullpath), "%s%s", HouseNoteWebRoot, path);
+    snprintf (fullpath, sizeof(fullpath)-5, "%s%s", HouseNoteWebRoot, path);
+    sep = strrchr (fullpath, '.');
+    if (!sep) return "no suffix";
+    sep[1] = 'h'; sep[2] = 't'; sep[3] = 'm'; sep[4] = 'l'; sep[5] = 0;
+
     unlink (fullpath);
     return 0;
 }

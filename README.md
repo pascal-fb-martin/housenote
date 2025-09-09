@@ -24,15 +24,23 @@ This service depends on the House series environment:
 
 This service keeps two hierarchies of documents: the original markdown document in a private directory. An HTML cache in a public directory. Both are in `/var/lib/house/note` since this is user or application modified content.
 
-## Notes Installation.
+## Publishing Notes.
 
-New or updated notes can be copied to /var/lib/house/note/content. Installing a whole directory tree is allowed.
+To publish new or updated notes is to copy them to /var/lib/house/note/content. Installing a whole directory tree is allowed.
 
-After each installation, the HouseNote cache should be cleared:
+Once the notes have been pubished, the HouseNote cache should be cleared:
 
 ```
-sudo rm -rf /var/lib/house/note/cache/*
+    sudo rm -rf /var/lib/house/note/cache/*
 ```
+
+As an alternative, a note can be published through the HouseNote web API:
+
+```
+    wget --post-file=<src>.md http://<server>/note/publish/<path>/<dst>.md -O /dev/null
+```
+
+The HouseNote service will both create the missing directories in the specified path and clear the cache of any stale file. The `<src>` part stands for the local name of the MD file to upload, while `<dst>` stands for the name that HouseNote should use. These two names can be different.
 
 The title of each note is extrated to populate the left menu: it is recommended to keep titles short, 30 characters or less.
 
@@ -64,6 +72,6 @@ The provided Makefile supports building private Debian packages. These are _not_
 To build a Debian package, use the `debian-package` target:
 
 ```
-make debian-package
+    make debian-package
 ```
 
