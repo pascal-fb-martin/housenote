@@ -1,5 +1,5 @@
 Source: housenote
-Version: 1.0
+Version: 1.1
 Section: Web servers
 Maintainer: Pascal Martin <pascal.fb.martin@gmail.com>
 Priority: optional
@@ -14,4 +14,7 @@ Description: A House service to share and browse notes
  HouseNote is a minimal application to stores and shares markdown notes.
  One can browse the notes, rendered in HTML. Notes are submitted through
  HTTP PUT methods.
-
+ .
+ HouseNote also supports other file formats, without rendering, as long as
+ the format is supported by the web browser (e.g. PDF). These can be submitted
+ through the same mechanism.

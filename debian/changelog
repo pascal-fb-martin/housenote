@@ -1,3 +1,9 @@
+housenote (1.1) UNRELEASED; urgency=low
+
+   * Support other file formats, without rendering (e.g. PDF)
+
+ -- Pascal Martin <pascal.fb.martin@gmail.com>  Mon, 29 Sep 2025 12:00:00 +0000
+
 housenote (1.0) UNRELEASED; urgency=low
 
    * Initial release as a Debian package.
