@@ -64,10 +64,10 @@
 
 #define DEBUG if (echttp_isdebug()) printf
 
-static const char *HouseNoteMarkdownRoot = "/var/lib/house/note/content";
+static const char *HouseNoteContentRoot = "/var/lib/house/note/content";
 static const char *HouseNoteWebRoot = "/var/lib/house/note/cache";
 
-static int HouseNoteMarkdownRootLength = 0;
+static int HouseNoteContentRootLength = 0;
 static int HouseNoteWebRootLength = 0;
 
 static const char *HouseNoteFileUri = 0;
@@ -83,15 +83,29 @@ static int housenote_storage_render (const char *filename) {
         if (fd >= 0) return fd;
     }
 
-    if (!strstr (filename, ".html")) return -1; // Only transcode to HTML.
+    if (strncmp (filename, HouseNoteWebRoot, HouseNoteWebRootLength)) {
+        // Reject any URL that does not point to the cache.
+        return -1;
+    }
 
-    FILE *in = 0;
-    FILE *out = 0;
     char fullpath[1024];
     const char *base = filename + HouseNoteWebRootLength;
 
+    if (!strstr (base, ".html")) {
+        // Only render to HTML, but support other formats as-is.
+        // In that case, we just pretend that the file was found
+        // by opening it at its "installed" location. If the file does not
+        // exists, open() will fail and a 404 status will be returned.
+        //
+        snprintf (fullpath, sizeof(fullpath), "%s%s", HouseNoteContentRoot, base);
+        return open (fullpath, O_RDONLY);
+    }
+
+    FILE *in = 0;
+    FILE *out = 0;
+
     // Build the source name. (The code reserves 3 bytes for the .md suffix.)
-    snprintf (fullpath, sizeof(fullpath)-3, "%s%s", HouseNoteMarkdownRoot, base);
+    snprintf (fullpath, sizeof(fullpath)-3, "%s%s", HouseNoteContentRoot, base);
     char *sep = strrchr (fullpath, '.');
     if (!sep) return -1;
     sep[1] = 'm'; sep[2] = 'd'; sep[3] = 0;
@@ -130,8 +144,10 @@ failure:
 
 static void housenote_storage_title (char *title, int size, const char *path) {
 
+    if (strstr (path, ".md")) goto notitle; // Get titles from markdowns only.
+
     FILE *file = fopen (path, "r");
-    if (!file) goto failure;
+    if (!file) goto notitle;
 
     // Detect and extract the markdown title. If not found in the first
     // file lines, fallback to the file name.
@@ -150,7 +166,7 @@ static void housenote_storage_title (char *title, int size, const char *path) {
     }
     fclose (file);
 
-failure:
+notitle:
 
     // Use the file basename as a fallback.
     const char *b = strrchr (path, '/');
@@ -164,7 +180,7 @@ void housenote_storage_initialize (int argc, const char **argv,
                                    const char *rooturi) {
 
     HouseNoteFileUri = rooturi;
-    HouseNoteMarkdownRootLength = strlen (HouseNoteMarkdownRoot);
+    HouseNoteContentRootLength = strlen (HouseNoteContentRoot);
     HouseNoteWebRootLength = strlen (HouseNoteWebRoot);
     echttp_static_route (rooturi, HouseNoteWebRoot);
     echttp_static_on_not_found (housenote_storage_render);
@@ -181,7 +197,7 @@ int housenote_storage_browse (const char *path, char *buffer, int size) {
 
    char *ext;
    char fullpath[1024];
-   snprintf (fullpath, sizeof(fullpath), "%s%s", HouseNoteMarkdownRoot, path);
+   snprintf (fullpath, sizeof(fullpath), "%s%s", HouseNoteContentRoot, path);
    DIR *dir = opendir (fullpath);
    if (!dir) return 0;
 
@@ -212,8 +228,8 @@ int housenote_storage_browse (const char *path, char *buffer, int size) {
            snprintf (display, sizeof(display), "%s", p->d_name);
        } else if (filetype == S_IFREG) {
            ext = strrchr (basename, '.');
-           if (!ext || strcmp (ext, ".md")) continue; // Only markdown.
-           strcpy (ext, ".html");
+           if (!ext) continue; // Cannot decide what this is..
+           if (!strcmp (ext, ".md")) strcpy (ext, ".html"); // Transcoded.
            baseuri = HouseNoteFileUri;
            housenote_storage_title (display, sizeof(display), fullchildpath);
        } else continue; // Ignore this entry.
@@ -245,7 +261,7 @@ const char *housenote_storage_publish (const char *path,
     // enough to justify spending brain power..
     //
     snprintf (fullpath, sizeof(fullpath),
-              "mkdir -p %s%s", HouseNoteMarkdownRoot, path);
+              "mkdir -p %s%s", HouseNoteContentRoot, path);
     char *sep = strrchr (fullpath, '/');
     if (sep) {
        *sep = 0;
@@ -253,7 +269,7 @@ const char *housenote_storage_publish (const char *path,
     }
 
     // Create the markdown file.
-    snprintf (fullpath, sizeof(fullpath), "%s%s", HouseNoteMarkdownRoot, path);
+    snprintf (fullpath, sizeof(fullpath), "%s%s", HouseNoteContentRoot, path);
     int fd = open (fullpath, O_WRONLY|O_TRUNC|O_CREAT, 0644);
     if (fd < 0) return "cannot create";
 
