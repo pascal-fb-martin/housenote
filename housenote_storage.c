@@ -144,7 +144,7 @@ failure:
 
 static void housenote_storage_title (char *title, int size, const char *path) {
 
-    if (strstr (path, ".md")) goto notitle; // Get titles from markdowns only.
+    if (!strstr (path, ".md")) goto notitle; // Get titles from markdowns only.
 
     FILE *file = fopen (path, "r");
     if (!file) goto notitle;
