@@ -24,13 +24,15 @@ function noteWipeout (id) {
    return element;
 }
 
-function noteContentShow (uri) {
+function noteContentShow (uri, text) {
    var iframe = document.getElementById ('notecontent');
    if (uri) iframe.src = uri;
    else iframe.src = null;
    iframe.width = '100%';
    iframe.height = '100%';
    iframe.className = 'housenotecontent';
+   var title = document.getElementById ('titlecontent');
+   title.innerHTML = text?text:'';
 }
 
 function notePathShow () {
@@ -44,16 +46,23 @@ function notePathShow () {
    button.houseNotePath = '/';
    button.addEventListener ("click", noteBrowseClick);
    column.appendChild (button);
+   var first = 1;
    for (i = 0; i < steps.length; ++i) {
       if (steps[i].length == 0) continue;
+      if (!first) column.appendChild (document.createTextNode (' / '));
+      first = false;
       button = noteButton ('housenotebuttontop');
       button.innerHTML = steps[i];
       button.houseNotePath = '/'+steps.slice(0,i+1).join('/');
       button.addEventListener ("click", noteBrowseClick);
       column.appendChild (button);
-      if (i < steps.length - 1 )
-         column.appendChild (document.createTextNode (' / '));
    }
+   row.appendChild (column);
+
+   var column = document.createElement('td');
+   column.id = 'titlecontent';
+   column.style = 'text-align: right;';
+   column.className = "housenotetop"; // Kludge to override browser's defaults
    row.appendChild (column);
 }
 
@@ -63,7 +72,7 @@ function noteBrowseClick () {
 }
 
 function noteContentClick () {
-   noteContentShow (this.houseNotePath);
+   noteContentShow (this.houseNotePath, this.innerHTML);
 }
 
 function compareDisplayName (a, b) {
