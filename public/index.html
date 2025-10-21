@@ -33,6 +33,8 @@ function noteContentShow (uri, text) {
    iframe.className = 'housenotecontent';
    var title = document.getElementById ('titlecontent');
    title.innerHTML = text?text:'';
+   title = document.getElementsByTagName ('title')[0];
+   title.innerHTML = 'Notes'+(text?' - '+text:'');
 }
 
 function notePathShow () {
