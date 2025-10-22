@@ -64,8 +64,8 @@
 
 #define DEBUG if (echttp_isdebug()) printf
 
-static const char *HouseNoteContentRoot = "/var/lib/house/note/content";
-static const char *HouseNoteWebRoot = "/var/lib/house/note/cache";
+static const char *HouseNoteContentRoot = "/var/lib/house/note";
+static const char *HouseNoteWebRoot = "/var/cache/house/note";
 
 static int HouseNoteContentRootLength = 0;
 static int HouseNoteWebRootLength = 0;

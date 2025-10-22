@@ -54,17 +54,19 @@ install-ui: install-preamble
 	$(INSTALL) -m 0644 public/* $(DESTDIR)$(SHARE)/public/note
 
 install-runtime: install-preamble
-	$(INSTALL) -m 0755 -d $(DESTDIR)/var/lib/house/note/content
-	$(INSTALL) -m 0755 -d $(DESTDIR)/var/lib/house/note/cache
+	$(INSTALL) -m 0755 -d $(DESTDIR)/var/lib/house/note
+	$(INSTALL) -m 0755 -d $(DESTDIR)/var/cache/house/note
 	$(INSTALL) -m 0755 -s housenote $(DESTDIR)$(prefix)/bin
 	touch $(DESTDIR)/etc/default/housenote
-	if [ "x$(DESTDIR)" = "x" ] ; then grep -q '^house:' /etc/passwd && chown -R house:house /var/lib/house/note ; fi
+	if [ "x$(DESTDIR)" = "x" ] ; then if [ -d /var/lib/house/note/content ] ; then cp -au /var/lib/house/note/content/* /var/lib/house/note ; rm -rf /var/lib/house/note/content /var/lib/house/note/cache ; fi ; fi
+	if [ "x$(DESTDIR)" = "x" ] ; then grep -q '^house:' /etc/passwd && chown -R house:house /var/lib/house/note /var/cache/house/note ; rm -rf /var/cache/house/note/* ; fi
 
 install-app: install-ui install-runtime
 
 uninstall-app:
 	rm -f $(DESTDIR)$(prefix)/bin/housenote
 	rm -rf $(DESTDIR)$(SHARE)/public/note
+	rm -rf $(DESTDIR)/var/cache/house/note
 
 purge-app:
 
@@ -72,6 +74,7 @@ purge-config:
 	rm -f $(DESTDIR)/etc/house/note.config
 	rm -rf $(DESTDIR)/etc/default/housenote
 	rm -rf $(DESTDIR)/var/lib/house/note
+	rm -rf $(DESTDIR)/var/cache/house/note
 
 # Build a private Debian package. -------------------------------
 
