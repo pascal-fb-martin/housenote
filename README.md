@@ -22,16 +22,16 @@ This service depends on the House series environment:
 
 ## Data Design
 
-This service keeps two hierarchies of documents: the original markdown document in a private directory. An HTML cache in a public directory. Both are in `/var/lib/house/note` since this is user or application modified content.
+This service keeps two hierarchies of documents: the original markdown documents in a private directory and an HTML cache in a public directory. The first is in `/var/lib/house/note` since this is user or application modified content, and the second is located in `/var/cache/house/note`.
 
 ## Publishing Notes.
 
-To publish new or updated notes is to copy them to /var/lib/house/note/content. Installing a whole directory tree is allowed.
+To publish new or updated notes is to copy them to `/var/lib/house/note`. Installing a whole directory tree is allowed.
 
-Once the notes have been pubished, the HouseNote cache should be cleared:
+Once the notes have been published, the HouseNote cache should be cleared:
 
 ```
-    sudo rm -rf /var/lib/house/note/cache/*
+    sudo rm -rf /var/cache/house/note/*
 ```
 
 As an alternative, a note can be published through the HouseNote web API:
