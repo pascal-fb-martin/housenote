@@ -1,3 +1,11 @@
+housenote (1.2) UNRELEASED; urgency=low
+
+   * Some UI improvement, notably display the title of the document shown.
+   * Add style customization to the document HTML.
+   * Follow the Linux FHS (use /var/cache).
+
+ -- Pascal Martin <pascal.fb.martin@gmail.com>  Wed, 22 Oct 2025 12:00:00 +0000
+
 housenote (1.1) UNRELEASED; urgency=low
 
    * Support other file formats, without rendering (e.g. PDF)
