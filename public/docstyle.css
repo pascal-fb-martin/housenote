@@ -1,0 +1,10 @@
+blockquote {
+    border-left: .25em solid #b1b9a0;
+    padding: 0 1em;
+    margin: 1rem 0;
+    color: #49535e;
+}
+
+pre {
+    background-color: #d0d0d0;
+}

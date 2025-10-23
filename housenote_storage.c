@@ -130,7 +130,23 @@ static int housenote_storage_render (const char *filename) {
     MMIOT *doc = mkd_in (in, 0);
     if (!doc) goto failure;
 
+    // Write an HTML header so that we can force our own CSS style.
+    static const char *htmlhead =
+        "<html><head>"
+           "<link rel=\"stylesheet\" href=\"/note/docstyle.css\">"
+           "<title></title>"
+        "</head><body>\n";
+    static int htmlheadlength = 0;
+    if (!htmlheadlength) htmlheadlength = strlen(htmlhead);
+    fwrite (htmlhead, htmlheadlength, 1, out);
+
     if (markdown (doc, out, MKD_FENCEDCODE | MKD_GITHUBTAGS)) goto failure;
+
+    // Write an HTML trailer that matches the header above.
+    static const char *htmltrail = "\n</body></html>";
+    static int htmltraillength = 0;
+    if (!htmltraillength) htmltraillength = strlen(htmltrail);
+    fwrite (htmltrail, htmltraillength, 1, out);
 
     fclose (in);
     fclose (out);
