@@ -27,7 +27,7 @@ function noteWipeout (id) {
 function noteContentShow (uri, text) {
    var iframe = document.getElementById ('notecontent');
    if (uri) iframe.src = uri;
-   else iframe.src = null;
+   else iframe.src = '/note/blank.html';
    iframe.width = '100%';
    iframe.height = '100%';
    iframe.className = 'housenotecontent';
