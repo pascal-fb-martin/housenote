@@ -199,7 +199,8 @@ void housenote_storage_initialize (int argc, const char **argv,
     HouseNoteContentRootLength = strlen (HouseNoteContentRoot);
     HouseNoteWebRootLength = strlen (HouseNoteWebRoot);
     echttp_static_route (rooturi, HouseNoteWebRoot);
-    echttp_static_on_not_found (housenote_storage_render);
+    HouseNoteTranscodeChain =
+       echttp_static_on_not_found (housenote_storage_render);
 }
 
 void housenote_storage_background (time_t now) {
