@@ -5,6 +5,7 @@ HOUSEAPP=housenote
 case $1 in
     configure|abort-upgrade|abort-deconfigure|abort-remove)
         . /usr/local/share/house/postinstall
+        chown -R house:house /var/cache/house/note
         chown -R house:house /var/lib/house/note
         ;;
 esac
