@@ -8,11 +8,22 @@
 
 .housenotetop {
    background-color: #2F2F2F;
+   text-decoration: none;
+   padding: 0px;
+}
+
+.housenotepath {
    font-family:'Metrophobic', sans-serif;
    font-size: 30px;
-   text-decoration: none;
    color: #A0A0A0;
-   padding: 0px;
+   text-align: left;
+}
+
+.housenotetitle {
+   font-family:'Metrophobic', sans-serif;
+   font-size: 30px;
+   color: #A0A0A0;
+   text-align: right;
 }
 
 .housenotelist {

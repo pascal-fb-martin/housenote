@@ -42,7 +42,7 @@ function notePathShow () {
    var table = noteWipeout ('notepath');
    var row = table.insertRow ();
    var column = document.createElement('td');
-   column.className = "housenotetop"; // Kludge to override browser's defaults
+   column.className = "housenotepath";
    var button = noteButton ('housenotebuttontop');
    button.innerHTML = '/';
    button.houseNotePath = '/';
@@ -63,8 +63,7 @@ function notePathShow () {
 
    var column = document.createElement('td');
    column.id = 'titlecontent';
-   column.style = 'text-align: right;';
-   column.className = "housenotetop"; // Kludge to override browser's defaults
+   column.className = "housenotetitle";
    row.appendChild (column);
 }
 
