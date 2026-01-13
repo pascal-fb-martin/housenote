@@ -52,7 +52,7 @@ This program implements a special set of conventions for converting markdown fil
 
 - If the GitHub URL points to a file in the repository's top folder, HouseNote will search for that file by name anywhere in its content tree. The names of such files must therefore be unique. The most typical case is the repository's main README.md, which must be installed as "<repository>.md".
 
-- If the GitHub URL points to a file in a subfolder, HouseNote will search for that file by name in a ".<repository>" subfolder of its content tree.
+- If the GitHub URL points to a file in a subfolder, HouseNote will search for that file by name in a "extra/.<repository>" subfolder of its content tree.
 
 - The URL is converted only if HouseNote finds the requested file.
 

@@ -172,7 +172,7 @@ static char *housenote_storage_render_url
             char *sep = strrchr (relativepath, '/');
             if (sep) {
                 *sep = 0;
-                snprintf (path, sizeof(path), "%s/.%s/%s",
+                snprintf (path, sizeof(path), "%s/extra/.%s/%s",
                           HouseNoteContentRoot, name, relativepath);
                 rootlength = strlen (path);
             }
