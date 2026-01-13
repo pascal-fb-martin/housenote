@@ -368,6 +368,7 @@ int housenote_storage_browse (const char *path, char *buffer, int size) {
        if (p->d_name[0] == '.') continue;
        if (strstr (p->d_name, ".png")) continue; // Skip images
        if (strstr (p->d_name, ".jpg")) continue; // Skip images
+       if (!strcmp (p->d_name, "extra")) continue; // Skip "extra" files.
 
        char fullchildpath[1300];
        struct stat fileinfo;
