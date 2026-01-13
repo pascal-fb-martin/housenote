@@ -74,6 +74,95 @@ static const char *HouseNoteFileUri = 0;
 
 static echttp_not_found_handler *HouseNoteTranscodeChain = 0;
 
+static int housenote_storage_find (char *path, int size, int offset, const char *name) {
+
+    DIR *dir = opendir (path);
+    if (!dir) return 0;
+
+    char *base = path + offset;
+    *(base++) = '/';
+    int sizeleft = size - offset - 1;
+
+    int found = 0; // File not found as the default.
+    struct dirent *p;
+    for (p = readdir(dir); p; p = readdir(dir)) {
+        snprintf (base, sizeleft, "%s", p->d_name);
+        if (!strcmp (p->d_name, name)) {
+            found = 1; // Found the file at this level.
+            break;
+        }
+        if (p->d_name[0] == '.') continue;
+        if (p->d_type == DT_DIR) {
+            int delta = strlen (base) + 1;
+            if (housenote_storage_find (path, size, offset + delta, name)) {
+                found = 1; // The file was found at a deeper level.
+                break;
+            }
+        }
+    }
+    closedir (dir);
+    return found;
+}
+
+// Translate URL references in the markdown text.
+// If the URL points to a House GitHub project, and the file exists in
+// the HouseNote's content tree, then the URL is replaced with an HouseNote
+// URL to the corresponding HTML file.
+// Otherwise the URL is kept as-is.
+//
+static char *housenote_storage_render_url (const char *url, const int size, void *data) {
+
+    // TBD: make a list of translations configurable.
+    static const char houseprojects[] = "https://github.com/pascal-fb-martin/";
+    static size_t houseprojectslength = 0;
+    if (!houseprojectslength) houseprojectslength = strlen(houseprojects);
+
+    if (strncmp (houseprojects, url, houseprojectslength))
+        goto notranslation; // Not an URL to another House project.
+
+    static int prefixlength = 0;
+    if (!prefixlength) prefixlength = strlen(HouseNoteContentRoot);
+
+    char name[512];
+    snprintf (name, sizeof(name), "%s", url + houseprojectslength);
+    name[size - houseprojectslength] = 0;
+    const char *filename = strrchr (name, '/');
+    if (!filename) {
+        // This is a link to the project: generate project + ".md".
+        int end = size - houseprojectslength;
+        name[end] = '.'; name[end+1] = 'm'; name[end+2] = 'd'; name[end+3] = 0;
+        filename = name;
+    } else {
+        filename += 1; // Skip the '/' and use as-is.
+    }
+
+    char path[1024];
+    snprintf (path, sizeof(path), "%s", HouseNoteContentRoot);
+
+    if (!housenote_storage_find (path, sizeof(path), prefixlength, filename))
+        goto notranslation; // Identity when not found.
+
+    char newurl[1024];
+    snprintf (newurl, sizeof(newurl), "/note/content%s", path + prefixlength);
+    char *ext = strstr (newurl, ".md");
+    if (ext) snprintf (ext, sizeof(newurl)-(ext-newurl), "%s", ".html");
+    return strdup (newurl); // Success.
+
+notranslation:
+
+    char *copy = malloc (size + 1);
+    snprintf (copy, size+1, "%s", url);
+    return copy; // Identity for now.
+}
+
+static char *housenote_storage_render_flags (const char *url, const int size, void *data) {
+    return strdup ("target=\"_blank\"");
+}
+
+static void housenote_storage_render_free (char *url, void *data) {
+    free (url);
+}
+
 static int housenote_storage_render (const char *filename) {
 
     int fd;
@@ -129,6 +218,11 @@ static int housenote_storage_render (const char *filename) {
 
     MMIOT *doc = mkd_in (in, 0);
     if (!doc) goto failure;
+
+    // Install callbacks to translate "internal" URLs.
+    mkd_e_url (doc, housenote_storage_render_url);
+    mkd_e_flags (doc, housenote_storage_render_flags);
+    mkd_e_free (doc, housenote_storage_render_free);
 
     // Write an HTML header so that we can force our own CSS style.
     static const char *htmlhead =
