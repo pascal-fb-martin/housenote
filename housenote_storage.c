@@ -91,7 +91,10 @@ static int housenote_storage_find (char *path, int size, int offset, const char 
             found = 1; // Found the file at this level.
             break;
         }
-        if (p->d_name[0] == '.') continue;
+        if (p->d_name[0] == '.') {
+           if (p->d_name[1] == 0) continue;
+           if (p->d_name[1] == '.') continue;
+        }
         if (p->d_type == DT_DIR) {
             int delta = strlen (base) + 1;
             if (housenote_storage_find (path, size, offset + delta, name)) {
@@ -110,53 +113,96 @@ static int housenote_storage_find (char *path, int size, int offset, const char 
 // URL to the corresponding HTML file.
 // Otherwise the URL is kept as-is.
 //
-static char *housenote_storage_render_url (const char *url, const int size, void *data) {
+// TBD: make the list of translations configurable.
+//
+struct TranslationPattern {
+   const char *text;
+   int length;
+};
+struct TranslationRule {
+   const char *prefix;
+   int length;
+   const char *flags;
+   struct TranslationPattern mid[4];
+};
+static struct TranslationRule Translations[] = {
+   {"https://github.com/pascal-fb-martin/", 0, "target=\"_blank\"", {{"/blob/master/", 0}, {"/blob/main/", 0}, {0,0}}},
+   {"https://raw.githubusercontent.com/pascal-fb-martin/", 0, 0, {{"/master/", 0}, {"/main/", 0}, {0,0}}},
+   {0, 0}
+};
 
-    // TBD: make a list of translations configurable.
-    static const char houseprojects[] = "https://github.com/pascal-fb-martin/";
-    static size_t houseprojectslength = 0;
-    if (!houseprojectslength) houseprojectslength = strlen(houseprojects);
+static char *housenote_storage_render_url
+                 (const char *url, const int size, void *data) {
 
-    if (strncmp (houseprojects, url, houseprojectslength))
-        goto notranslation; // Not an URL to another House project.
-
-    static int prefixlength = 0;
-    if (!prefixlength) prefixlength = strlen(HouseNoteContentRoot);
+    // Does this URL matches any of our translation rules?
+    int i;
+    for (i = 0; Translations[i].prefix; ++i) {
+        if (!Translations[i].length)
+            Translations[i].length = strlen(Translations[i].prefix);
+        if (!strncmp (Translations[i].prefix, url, Translations[i].length)) break;
+    }
+    if (!Translations[i].prefix) return 0; // Not matching any rule.
 
     char name[512];
+    int houseprojectslength = Translations[i].length;
     snprintf (name, sizeof(name), "%s", url + houseprojectslength);
     name[size - houseprojectslength] = 0;
     const char *filename = strrchr (name, '/');
-    if (!filename) {
-        // This is a link to the project: generate project + ".md".
-        int end = size - houseprojectslength;
-        name[end] = '.'; name[end+1] = 'm'; name[end+2] = 'd'; name[end+3] = 0;
-        filename = name;
-    } else {
-        filename += 1; // Skip the '/' and use as-is.
-    }
+    if (!filename) return 0; // Keep links to a GitHub project itself as-is.
+    filename += 1; // Skip the '/'
 
     char path[1024];
     snprintf (path, sizeof(path), "%s", HouseNoteContentRoot);
+    int rootlength = HouseNoteContentRootLength;
 
-    if (!housenote_storage_find (path, sizeof(path), prefixlength, filename))
-        goto notranslation; // Identity when not found.
+    int j;
+    for (j = 0; Translations[i].mid[j].text; ++j) {
+        char *blob = strstr (name, Translations[i].mid[j].text);
+        if (blob) {
+            // This link is to a GitHub file. If the file is in the repository's
+            // top folder, just use its name. Otherwise build a local path that
+            // follows the convention below:
+            //
+            //    <HouseNote content root>/.<repository>/<relative path>
+            //
+            if (!Translations[i].mid[j].length)
+                Translations[i].mid[j].length = strlen(Translations[i].mid[j].text);
+            *blob = 0; // Separate the part of the URL before the mid text.
+            char *relativepath = blob + Translations[i].mid[j].length;
+            char *sep = strrchr (relativepath, '/');
+            if (sep) {
+                *sep = 0;
+                snprintf (path, sizeof(path), "%s/.%s/%s",
+                          HouseNoteContentRoot, name, relativepath);
+                rootlength = strlen (path);
+            }
+            break;
+        }
+    }
+
+    if (!housenote_storage_find (path, sizeof(path), rootlength, filename))
+        return 0; // no URL change when the file was not found.
 
     char newurl[1024];
-    snprintf (newurl, sizeof(newurl), "/note/content%s", path + prefixlength);
+    snprintf (newurl, sizeof(newurl),
+              "/note/content%s", path + HouseNoteContentRootLength);
     char *ext = strstr (newurl, ".md");
     if (ext) snprintf (ext, sizeof(newurl)-(ext-newurl), "%s", ".html");
+
     return strdup (newurl); // Success.
-
-notranslation:
-
-    char *copy = malloc (size + 1);
-    snprintf (copy, size+1, "%s", url);
-    return copy; // Identity for now.
 }
 
 static char *housenote_storage_render_flags (const char *url, const int size, void *data) {
-    return strdup ("target=\"_blank\"");
+    int i;
+    for (i = 0; Translations[i].prefix; ++i) {
+        if (!Translations[i].length)
+            Translations[i].length = strlen(Translations[i].prefix);
+        if (!strncmp (Translations[i].prefix, url, Translations[i].length)) {
+            if (Translations[i].flags) return strdup(Translations[i].flags);
+            break;
+        }
+    }
+    return 0;
 }
 
 static void housenote_storage_render_free (char *url, void *data) {
@@ -320,6 +366,8 @@ int housenote_storage_browse (const char *path, char *buffer, int size) {
        struct dirent *p = readdir (dir);
        if (!p) break;
        if (p->d_name[0] == '.') continue;
+       if (strstr (p->d_name, ".png")) continue; // Skip images
+       if (strstr (p->d_name, ".jpg")) continue; // Skip images
 
        char fullchildpath[1300];
        struct stat fileinfo;

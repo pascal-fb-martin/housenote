@@ -42,7 +42,24 @@ As an alternative, a note can be published through the HouseNote web API:
 
 The HouseNote service will both create the missing directories in the specified path and clear the cache of any stale file. The `<src>` part stands for the local name of the MD file to upload, while `<dst>` stands for the name that HouseNote should use. These two names can be different.
 
-The title of each note is extrated to populate the left menu: it is recommended to keep titles short, 30 characters or less.
+The title of each note is extrated  for the markdown file to populate the left menu: it is recommended to keep titles short, 30 characters or less.
+
+## GitHub manuals
+
+This program implements a special set of conventions for converting markdown files from this author's GitHub repositories, i.e. other House repositories:
+
+- An URL that starts with `https://github.com/pascal-fb-martin/` or `https://raw.githubusercontent.com/pascal-fb-martin/` and references a specific file is converted to a local HouseNote URL. An URL that references the repository itself is not converted. Other URLs are not converted.
+
+- If the GitHub URL points to a file in the repository's top folder, HouseNote will search for that file by name anywhere in its content tree. The names of such files must therefore be unique. The most typical case is the repository's main README.md, which must be installed as "<repository>.md".
+
+- If the GitHub URL points to a file in a subfolder, HouseNote will search for that file by name in a ".<repository>" subfolder of its content tree.
+
+- The URL is converted only if HouseNote finds the requested file.
+
+These conventions match how House services are installed.
+
+> [!NOTE]
+> The URL for an embedded image is converted as well, using the same conventions as described above.
 
 ## Web API
 
