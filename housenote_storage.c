@@ -241,6 +241,12 @@ static int housenote_storage_render (const char *filename) {
 
     // Build the source name. (The code reserves 3 bytes for the .md suffix.)
     snprintf (fullpath, sizeof(fullpath)-3, "%s%s", HouseNoteContentRoot, base);
+
+    // If the HTML file was installed, use this one, no rendering.
+    int html = open (fullpath, O_RDONLY);
+    if (html >= 0) return html;
+
+    // The HTML file was not installed: render from a markdown file.
     char *sep = strrchr (fullpath, '.');
     if (!sep) return -1;
     sep[1] = 'm'; sep[2] = 'd'; sep[3] = 0;

@@ -8,6 +8,8 @@ This service stores and shares markdown notes. One can browse the notes, rendere
 
 Notes can be submitted through HTTP POST methods, but the preferred method is by installing files (and clearing the cache).
 
+Notes can be submitted using other formats, like PDF or even HTML. In that case the original content of the file is sent to the client, without any rendering.
+
 ## Installation
 
 This service depends on the House series environment:
@@ -42,7 +44,7 @@ As an alternative, a note can be published through the HouseNote web API:
 
 The HouseNote service will both create the missing directories in the specified path and clear the cache of any stale file. The `<src>` part stands for the local name of the MD file to upload, while `<dst>` stands for the name that HouseNote should use. These two names can be different.
 
-The title of each note is extrated  for the markdown file to populate the left menu: it is recommended to keep titles short, 30 characters or less.
+The title of each note is extrated from the markdown file to populate the left menu: it is recommended to keep titles short, 30 characters or less.
 
 ## GitHub manuals
 
