@@ -59,6 +59,7 @@
 
 #include <echttp.h>
 #include <echttp_static.h>
+#include <echttp_libc.h>
 
 #include "housenote_storage.h"
 
@@ -358,7 +359,6 @@ int housenote_storage_browse (const char *path, char *buffer, int size) {
    // subarray contains a boolean (is browsable--ie. a directory) followed
    // by an URI and then a display name.
 
-   char *ext;
    char fullpath[1024];
    snprintf (fullpath, sizeof(fullpath), "%s%s", HouseNoteContentRoot, path);
    DIR *dir = opendir (fullpath);
@@ -367,6 +367,8 @@ int housenote_storage_browse (const char *path, char *buffer, int size) {
    int cursor = snprintf (buffer, size, ",\"browse\":");
    if (cursor >= size) goto overflow;
 
+   char basename[512];
+   char *end = basename+sizeof(basename);
    const char *sep = "[";
    for (;;) {
        struct dirent *p = readdir (dir);
@@ -384,18 +386,18 @@ int housenote_storage_browse (const char *path, char *buffer, int size) {
 
 
        char display[1300];
-       char basename[512];
        snprintf (basename, sizeof(basename)-5, "%s", p->d_name);
 
        const char *baseuri;
        int filetype = fileinfo.st_mode & S_IFMT;
        if (filetype == S_IFDIR) {
            baseuri = "";
-           snprintf (display, sizeof(display), "%s", p->d_name);
+           memccpy (display, p->d_name, 0, sizeof(display));
        } else if (filetype == S_IFREG) {
-           ext = strrchr (basename, '.');
+           char *ext = strrchr (basename, '.');
            if (!ext) continue; // Cannot decide what this is..
-           if (!strcmp (ext, ".md")) strcpy (ext, ".html"); // Transcoded.
+           if (!strcmp (ext, ".md"))
+               stpecpy (ext, end, ".html"); // Transcoded.
            baseuri = HouseNoteFileUri;
            housenote_storage_title (display, sizeof(display), fullchildpath);
        } else continue; // Ignore this entry.
