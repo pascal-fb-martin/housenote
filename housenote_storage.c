@@ -87,7 +87,7 @@ static int housenote_storage_find (char *path, int size, int offset, const char 
     int found = 0; // File not found as the default.
     struct dirent *p;
     for (p = readdir(dir); p; p = readdir(dir)) {
-        snprintf (base, sizeleft, "%s", p->d_name);
+        strtcpy (base, p->d_name, sizeleft);
         if (!strcmp (p->d_name, name)) {
             found = 1; // Found the file at this level.
             break;
@@ -146,14 +146,14 @@ static char *housenote_storage_render_url
 
     char name[512];
     int houseprojectslength = Translations[i].length;
-    snprintf (name, sizeof(name), "%s", url + houseprojectslength);
+    strtcpy (name, url + houseprojectslength, sizeof(name));
     name[size - houseprojectslength] = 0;
     const char *filename = strrchr (name, '/');
     if (!filename) return 0; // Keep links to a GitHub project itself as-is.
     filename += 1; // Skip the '/'
 
     char path[1024];
-    snprintf (path, sizeof(path), "%s", HouseNoteContentRoot);
+    strtcpy (path, HouseNoteContentRoot, sizeof(path));
     int rootlength = HouseNoteContentRootLength;
 
     int j;
@@ -188,7 +188,7 @@ static char *housenote_storage_render_url
     snprintf (newurl, sizeof(newurl),
               "/note/content%s", path + HouseNoteContentRootLength);
     char *ext = strstr (newurl, ".md");
-    if (ext) snprintf (ext, sizeof(newurl)-(ext-newurl), "%s", ".html");
+    if (ext) stpecpy (ext, newurl+sizeof(newurl), ".html");
 
     return strdup (newurl); // Success.
 }
@@ -334,7 +334,7 @@ notitle:
     // Use the file basename as a fallback.
     const char *b = strrchr (path, '/');
     if (b) path = b + 1;
-    snprintf (title, size, "%s", path);
+    strtcpy (title, path, size);
     char *s = strrchr (title, '.');
     if (s) *s = 0;
 }
@@ -386,7 +386,7 @@ int housenote_storage_browse (const char *path, char *buffer, int size) {
 
 
        char display[1300];
-       snprintf (basename, sizeof(basename)-5, "%s", p->d_name);
+       strtcpy (basename, p->d_name, sizeof(basename)-5);
 
        const char *baseuri;
        int filetype = fileinfo.st_mode & S_IFMT;
