@@ -392,7 +392,7 @@ int housenote_storage_browse (const char *path, char *buffer, int size) {
        int filetype = fileinfo.st_mode & S_IFMT;
        if (filetype == S_IFDIR) {
            baseuri = "";
-           memccpy (display, p->d_name, 0, sizeof(display));
+           strtcpy (display, p->d_name, sizeof(display));
        } else if (filetype == S_IFREG) {
            char *ext = strrchr (basename, '.');
            if (!ext) continue; // Cannot decide what this is..
